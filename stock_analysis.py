@@ -39,8 +39,8 @@ class Stock_Analysis():
                 continue
             
             # Calculate daily range and average daily range
-            daily_range = period_data['High'] - period_data['Low']
-            avg_daily_range = daily_range.mean()
+            daily_range = ((period_data['High'] - period_data['Low']) / period_data['High']) * 100
+            #avg_daily_range = daily_range.mean()
             
             # Calculate return since earnings
             returns = (period_data['Close'] / period_data.loc[earnings_date.floor('D'), 'Close'] - 1) * 100
@@ -52,7 +52,7 @@ class Stock_Analysis():
             
             results.append({
                 'Earnings_Date': earnings_date,
-                'Avg_Daily_Range': avg_daily_range,
+                'Daily_Range': daily_range,
                 'Max_Return': max_return,
                 'Days_to_Max': days_to_max
             })
@@ -74,9 +74,9 @@ class Stock_Analysis():
             ax1.axvline(x=date, color='r', linestyle='--', alpha=0.5)
         
         # Plot average daily range
-        ax2.plot(analysis_results['Earnings_Date'], analysis_results['Avg_Daily_Range'])
-        ax2.set_title('Average Daily Range around Earnings Dates')
-        ax2.set_ylabel('Average Daily Range')
+        ax2.plot(analysis_results['Earnings_Date'], analysis_results['Daily_Range'])
+        ax2.set_title('Daily Range around Earnings Dates')
+        ax2.set_ylabel('Daily Range')
         ax2.set_xlabel('Date')
         
         plt.tight_layout()
