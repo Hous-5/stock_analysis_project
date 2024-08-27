@@ -1,6 +1,7 @@
 import pandas as pd
 import yfinance as yf
 import matplotlib.pyplot as plt
+import numpy as np
 from datetime import datetime, timedelta
 
 class Stock_Analysis():
@@ -12,7 +13,7 @@ class Stock_Analysis():
 
     def get_earnings_dates(self, ticker, start_date, end_date):
         stock = yf.Ticker(ticker)
-        earnings = stock.earnings_dates
+        earnings = stock.get_earnings_dates(99)
         return earnings[(earnings.index >= start_date) & (earnings.index <= end_date)]
 
     def analyze_stock_performance(self, ticker, start_date, end_date, days_before=5, days_after=20):
@@ -79,4 +80,14 @@ class Stock_Analysis():
         ax2.set_xlabel('Date')
         
         plt.tight_layout()
+        plt.show()
+
+    def box_plot_days_to_max(self, ticker_list, analysis_list):
+        #Box plot of days to max
+        fig, ax = plt.subplots()
+        ax.set_ylabel('Days to Max')
+
+        bplot = ax.boxplot(analysis_list,
+            tick_labels=ticker_list)  # will be used to label x-ticks
+
         plt.show()
