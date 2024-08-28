@@ -32,6 +32,13 @@ class Stock_Analysis:
 
         return merged_data
 
+    def transform(self, df):
+        # Calculate the daily percentage change (High - Low) / High * 100
+        df['daily_perc_change'] = ((df['High'] - df['Low']) / df['High']) * 100
+        df['daily_change'] = (df['High'] - df['Low'])
+        
+        return df
+
     def analyze_stock_performance(self, ticker, start_date, end_date, days_before=7, days_after=28):
         # Get merged data
         merged_data = self.get_merged_data(ticker, start_date, end_date)
@@ -85,18 +92,26 @@ class Stock_Analysis:
         plt.tight_layout()
         plt.show()
 
-    def plot_daily(self, ticker, start_date, end_date, analysis_results, col):
+    def plot_daily(self, df, col):
+        # Plot daily_change
         fig, ax1 = plt.subplots(figsize=(12, 6))
+        ax1.plot(df.index, df[col], linestyle='-', color='b')
 
         # Plot earnings dates
-        for date in analysis_results['Earnings_Date'].values:
-            ax1.axvline(x=date, color='r', linestyle='--', alpha=0.5)
+        earnings_dates = []
+        for idx, row in df.iterrows():
+            if pd.notna(row['Reported EPS']):
+                ax1.axvline(x=idx, color='r', linestyle='--', alpha=0.5)
+                earnings_dates.append(idx)
+        
+        # Set the x-ticks and labels to be the earnings dates only
+        ax1.set_xticks(earnings_dates)
+        ax1.set_xticklabels([pd.to_datetime(date).strftime('%Y-%m-%d') for date in earnings_dates], rotation=45, ha='right')
 
-        # Plot average daily range
-        ax1.plot(analysis_results['Earnings_Date'], analysis_results[col])
-        ax1.set_title(f'{ticker} - {col} around Earnings Dates')
-        ax1.set_ylabel(col)
+        # Set labels and title
         ax1.set_xlabel('Date')
+        ax1.set_ylabel(col)
+        ax1.set_title(f'{col} and Earnings Dates')
 
         plt.tight_layout()
         plt.show()
