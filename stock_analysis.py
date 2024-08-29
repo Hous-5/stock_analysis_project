@@ -29,6 +29,7 @@ class Stock_Analysis:
 
         # Merge the DataFrames on the Date index, using outer join to keep all dates
         merged_data = pd.merge(stock_data, earnings_data, left_index=True, right_index=True, how='outer')
+        merged_data.index = pd.to_datetime(merged_data.index)
 
         return merged_data
 
@@ -38,6 +39,24 @@ class Stock_Analysis:
         df['daily_change'] = (df['High'] - df['Low'])
         
         return df
+
+    # This funnction will filter the dataframe to remove all data except the data before and after the earning report
+    def earnings_dates(self, df, days_before, days_after):
+        # Find rows where there is a Reported EPS (assuming this is the earnings date)
+        earnings_dates = df.dropna(subset=['Reported EPS']).index
+
+        # Create an empty DataFrame to store the filtered results
+        filtered_df = pd.DataFrame()
+
+        for date in earnings_dates:
+            # Get the range of dates around the earnings date
+            start_date = date - pd.Timedelta(days=days_before)
+            end_date = date + pd.Timedelta(days=days_after)
+
+            # Filter the rows within the date range and append to the filtered DataFrame
+            filtered_df = pd.concat([filtered_df, df.loc[start_date:end_date]])
+
+        return filtered_df
 
     def analyze_stock_performance(self, ticker, start_date, end_date, days_before=7, days_after=28):
         # Get merged data
@@ -94,7 +113,7 @@ class Stock_Analysis:
 
     def plot_daily(self, df, col):
         # Plot daily_change
-        fig, ax1 = plt.subplots(figsize=(12, 6))
+        fig, ax1 = plt.subplots(figsize=(18, 6))
         ax1.plot(df.index, df[col], linestyle='-', color='b')
 
         # Plot earnings dates
@@ -106,7 +125,7 @@ class Stock_Analysis:
         
         # Set the x-ticks and labels to be the earnings dates only
         ax1.set_xticks(earnings_dates)
-        ax1.set_xticklabels([pd.to_datetime(date).strftime('%Y-%m-%d') for date in earnings_dates], rotation=45, ha='right')
+        ax1.set_xticklabels([date.strftime('%Y-%m-%d') for date in earnings_dates], rotation=45, ha='right')
 
         # Set labels and title
         ax1.set_xlabel('Date')
